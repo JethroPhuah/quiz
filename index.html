@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product Thinking Quiz</title>
+<style>
+  :root {
+    --bg:            #f4f5f7;
+    --surface:       #ffffff;
+    --border:        #dcdfe4;
+    --border-strong: #b9bec7;
+    --text:          #1b1f26;
+    --text-muted:    #5b6371;
+    --accent:        #1c3f96;
+    --accent-soft:   #e8edf9;
+    --accent-text:   #ffffff;
+    --correct:       #1a6b45;
+    --correct-soft:  #e4f2ea;
+    --wrong:         #a32020;
+    --wrong-soft:    #fbe9e9;
+    --focus:         #1c3f96;
+    --radius:        8px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:            #14171c;
+      --surface:       #1d2128;
+      --border:        #333944;
+      --border-strong: #4a5261;
+      --text:          #eef0f3;
+      --text-muted:    #a2abba;
+      --accent:        #7ba1f0;
+      --accent-soft:   #232c3f;
+      --accent-text:   #10141a;
+      --correct:       #6fce9f;
+      --correct-soft:  #1a2b23;
+      --wrong:         #f08e8e;
+      --wrong-soft:    #2e1e1e;
+      --focus:         #7ba1f0;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 2rem 1rem 3rem;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 42rem; margin: 0 auto; }
+
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /* ---------- header ---------- */
+
+  header { margin-bottom: 1.5rem; }
+
+  h1 {
+    margin: 0 0 .35rem;
+    font-size: 1.6rem;
+    letter-spacing: -.01em;
+  }
+
+  .tagline {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: .95rem;
+  }
+
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    margin-top: 1.4rem;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width .25s ease;
+  }
+
+  .progress-label {
+    font-size: .8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- card ---------- */
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 999px;
+    padding: .25rem .7rem;
+    margin-bottom: .9rem;
+  }
+
+  .question {
+    margin: 0 0 1.25rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+
+  .question:focus { outline: none; }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+  }
+
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: .7rem;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: .8rem .95rem;
+    cursor: pointer;
+    transition: border-color .12s, background .12s;
+  }
+
+  .option:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .option:disabled { cursor: default; }
+
+  .option .key {
+    flex: 0 0 auto;
+    font-weight: 600;
+    color: var(--text-muted);
+    min-width: 1.1em;
+  }
+
+  .option.correct {
+    border-color: var(--correct);
+    background: var(--correct-soft);
+  }
+
+  .option.correct .key { color: var(--correct); }
+
+  .option.wrong {
+    border-color: var(--wrong);
+    background: var(--wrong-soft);
+  }
+
+  .option.wrong .key { color: var(--wrong); }
+
+  /* ---------- feedback ---------- */
+
+  .feedback {
+    margin-top: 1.25rem;
+    border-left: 3px solid var(--border-strong);
+    padding: .1rem 0 .1rem 1rem;
+  }
+
+  .feedback:empty { display: none; }
+
+  .feedback:focus { outline: none; }
+
+  .feedback.hit  { border-left-color: var(--correct); }
+  .feedback.miss { border-left-color: var(--wrong); }
+
+  .verdict {
+    margin: 0 0 .5rem;
+    font-weight: 600;
+  }
+
+  .feedback.hit  .verdict { color: var(--correct); }
+  .feedback.miss .verdict { color: var(--wrong); }
+
+  .explanation {
+    margin: 0;
+    color: var(--text);
+    font-size: .95rem;
+  }
+
+  .source {
+    display: block;
+    margin-top: .75rem;
+    font-size: .85rem;
+    color: var(--text-muted);
+  }
+
+  a { color: var(--accent); }
+
+  .actions {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .btn {
+    font: inherit;
+    font-weight: 600;
+    color: var(--accent-text);
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    padding: .65rem 1.4rem;
+    cursor: pointer;
+  }
+
+  .btn:hover { filter: brightness(1.08); }
+
+  .btn.secondary {
+    color: var(--accent);
+    background: transparent;
+  }
+
+  /* ---------- results ---------- */
+
+  .score {
+    font-size: 2.75rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    margin: 0;
+    line-height: 1.1;
+  }
+
+  .score span { font-size: 1.5rem; color: var(--text-muted); font-weight: 600; }
+
+  .band {
+    margin: .6rem 0 .3rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .band-note { margin: 0; color: var(--text-muted); }
+
+  .bonus {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+    font-size: .95rem;
+    color: var(--text-muted);
+  }
+
+  .review { margin-top: 1.75rem; }
+
+  .review h2 {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--text-muted);
+    margin: 0 0 1rem;
+  }
+
+  .review-item {
+    border-top: 1px solid var(--border);
+    padding: 1.15rem 0;
+  }
+
+  .review-item p { margin: 0 0 .5rem; }
+
+  .review-q { font-weight: 600; }
+
+  .review-line { font-size: .92rem; }
+
+  .review-line .mark { font-weight: 700; }
+
+  .review-line.picked .mark { color: var(--wrong); }
+  .review-line.answer .mark { color: var(--correct); }
+
+  .review-exp {
+    font-size: .92rem;
+    color: var(--text-muted);
+    margin-top: .65rem !important;
+  }
+
+  footer {
+    margin-top: 2rem;
+    font-size: .82rem;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  [hidden] { display: none !important; }
+
+  @media (max-width: 480px) {
+    body { padding: 1.25rem .75rem 2rem; }
+    .card { padding: 1.15rem; }
+    h1 { font-size: 1.35rem; }
+    .question { font-size: 1.05rem; }
+    .actions { justify-content: stretch; }
+    .btn { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Product Thinking Quiz</h1>
+    <p class="tagline">Ten questions on problems before solutions &mdash; based on the IDG Product Thinking pathway.</p>
+    <div class="progress-row">
+      <div class="progress-track">
+        <div class="progress-fill" id="bar" role="progressbar"
+             aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"
+             aria-label="Quiz progress"></div>
+      </div>
+      <span class="progress-label" id="counter">Question 1 of 10</span>
+    </div>
+  </header>
+
+  <main class="card" id="quiz"></main>
+
+  <section class="card" id="results" hidden></section>
+
+  <footer>
+    Content adapted from the
+    <a href="https://www.idg.gov.sg/product-thinking/" target="_blank" rel="noopener">IDG Product Thinking pathway</a>.
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var GUIDE = "https://www.idg.gov.sg/guides-and-resources/";
+
+  var QUESTIONS = [
+    {
+      topic: "Problems before solutions",
+      question: "A director opens a project kickoff with: &ldquo;We need an AI chatbot for the grants portal.&rdquo; What is the product-thinking objection?",
+      options: [
+        "It is a solution presented as strategy, before anyone has diagnosed the problem",
+        "A chatbot is too expensive for this use case",
+        "Nothing — a chatbot is a sensible fit for grants",
+        "The team should benchmark other agencies’ chatbots first"
+      ],
+      answer: 0,
+      explanation: "IDG calls statements like &ldquo;we need a CRM&rdquo; or &ldquo;we need more AI&rdquo; <em>solutions masquerading as strategy</em>. Most digital projects get cancelled not because teams executed badly, but because they skipped diagnosis and built something nobody needed. Start with who the users are, what they are trying to do, and what is blocking them &mdash; before any technology conversation.",
+      source: { label: "Understanding the Problem", url: GUIDE + "productthinking1/" }
+    },
+    {
+      topic: "Outcomes over outputs",
+      question: "Which of these is an <em>outcome</em> rather than an output?",
+      options: [
+        "Launched the redesigned application form in Q3",
+        "Shipped 14 new features this year",
+        "Median time to complete a grant application fell from 45 minutes to 12",
+        "Migrated the portal to a new cloud provider"
+      ],
+      answer: 2,
+      explanation: "Outputs are what you ship; outcomes are the change you created. Launching a form, shipping features and migrating a cloud provider are all things that happened to <em>the team</em>. A completion time falling from 45 minutes to 12 is something that happened to <em>a user</em>. Releasing a feature is not the finish line &mdash; the question is whether it moved anything.",
+      source: { label: "Understanding the Problem", url: GUIDE + "productthinking1/" }
+    },
+    {
+      topic: "The Five Whys",
+      question: "Applicants cannot access grants. <em>Why?</em> Applications take too long. <em>Why?</em> Constant back-and-forth with officers. <em>Why?</em> Submissions arrive incomplete. <em>Why?</em> The form is full of jargon. <em>Why?</em> &mdash; what did IDG land on as the root cause?",
+      options: [
+        "Officers were not trained to explain the form",
+        "The form was structured around agency operations, not applicants’ mental models",
+        "Applicants were not reading the guidance notes",
+        "The system could not validate fields in real time"
+      ],
+      answer: 1,
+      explanation: "This is IDG&rsquo;s own worked example. The jargon was still a symptom; the cause was that the form mirrored how the agency is organised rather than how an applicant thinks &mdash; so the fix was to redesign the form itself. Note the caveat: problems rarely have a single root cause. You are hunting for a cause that is <em>within your control</em> and connects to the outcome you want.",
+      source: { label: "Start With The Whys", url: GUIDE + "productthinking2/" }
+    },
+    {
+      topic: "The 4Cs",
+      question: "A team&rsquo;s problem statement reads, in full: &ldquo;Our portal&rsquo;s UI looks outdated.&rdquo; Under the 4Cs, what is the biggest gap?",
+      options: [
+        "It does not name a target user group",
+        "It is not time-bound",
+        "It states a solution rather than a problem",
+        "It offers a vague Clarity claim and nothing on Consequence, Cause or Confirmation"
+      ],
+      answer: 3,
+      explanation: "The 4Cs are <strong>Clarity</strong> (the issue in terms every stakeholder understands), <strong>Consequence</strong> (the impact landing on users), <strong>Cause</strong> (the root reason, not the symptom), and <strong>Confirmation</strong> (the team genuinely agrees this is the problem). IDG&rsquo;s readiness test: <em>&ldquo;If you can&rsquo;t complete all four fields, you&rsquo;re not ready to build yet.&rdquo;</em> &ldquo;It states a solution rather than a problem&rdquo; is tempting &mdash; but &ldquo;looks outdated&rdquo; is a weak observation, not a smuggled solution.",
+      source: { label: "Craft a Clear Problem Statement", url: GUIDE + "productthinking3/" }
+    },
+    {
+      topic: "SMART metrics",
+      question: "Which target actually passes the SMART test?",
+      options: [
+        "Make the website better",
+        "Significantly improve user satisfaction",
+        "Cut median application completion time from 45 to 15 minutes by Q4",
+        "Increase engagement across all channels"
+      ],
+      answer: 2,
+      explanation: "SMART = Specific, Measurable, Achievable, Relevant, Time-bound. IDG contrasts &ldquo;make the website better&rdquo; directly against a concrete target, because only the second kind can tell you whether you succeeded. &ldquo;Significantly&rdquo; and &ldquo;engagement&rdquo; are the usual places where accountability quietly disappears.",
+      source: { label: "Metrics", url: GUIDE + "productthinking4/" }
+    },
+    {
+      topic: "Leading vs lagging",
+      question: "Your outcome &mdash; annual grant abandonment rate &mdash; is only measurable once the yearly cycle closes. What is a sensible <em>leading</em> indicator to watch weekly?",
+      options: [
+        "Share of applicants who clear page 1 without hitting a validation error",
+        "Total grants disbursed this financial year",
+        "Number of features shipped this quarter",
+        "The year-end citizen satisfaction score"
+      ],
+      answer: 0,
+      explanation: "Lagging indicators sit closest to the real outcome but arrive too late to steer by; leading indicators arrive early and let you course-correct, at the cost of sitting further from the thing you actually care about. Grants disbursed and the year-end satisfaction score are both lagging. Features shipped is not an indicator at all &mdash; it is an output, activity dressed up as progress.",
+      source: { label: "Metrics", url: GUIDE + "productthinking4/" }
+    },
+    {
+      topic: "Assumptions and risks",
+      question: "IDG&rsquo;s health-appointment team validated demand with a FormSG form wired to an Excel sheet &mdash; deliberately non-scalable. What were they de-risking?",
+      options: [
+        "Technical risk — proving the system could take the load",
+        "Team risk — settling who owned what",
+        "Nothing useful; shipping something non-scalable is an anti-pattern",
+        "Market risk — the cheapest possible way to find out whether real users wanted it"
+      ],
+      answer: 3,
+      explanation: "Three risks to surface early: <strong>market</strong> (will users want this?), <strong>technical</strong> (can we build it?), and <strong>team</strong> (can we execute together, with policy, ops and tech aligned and accountable?). The A/B test settled it: zero bookings in the control group, 24 in the treatment group, with users sharing the link unprompted. <em>&ldquo;This is not scalable, but it was the lowest-cost way to validate the approach.&rdquo;</em> Watch what users <strong>do</strong>, not just what they say &mdash; then progress through proof of concept &rarr; proof of value &rarr; scale &rarr; maturity.",
+      source: { label: "Assumptions and Risks", url: GUIDE + "productthinking5/" }
+    },
+    {
+      topic: "Customer experience",
+      question: "What is the 11-star experience exercise actually for?",
+      options: [
+        "Setting an 11-star experience as the delivery target",
+        "Stretching ambition past the obvious until the scenarios turn absurd — the real opportunity sits between adequate and impossible",
+        "Benchmarking your service against comparable ones",
+        "Scoring customer satisfaction on an 11-point scale"
+      ],
+      answer: 1,
+      explanation: "Start somewhere reasonable &mdash; friendly interface, clear instructions, fast load &mdash; then keep pushing until the scenario is ridiculous. <em>The absurdity is a prompt, not a target.</em> This matters most for mandatory government services, where citizens cannot take their business elsewhere, so good CX is not a nice-to-have. What set ParkingSG and RedeemSG apart was not clever features; it was killing a specific, named frustration people had before.",
+      source: { label: "A Good Customer Experience", url: GUIDE + "productthinking6/" }
+    },
+
+    /* ====================================================================
+       BONUS ROUND -- REPLACE THE PLACEHOLDERS BELOW
+       Swap every [bracketed] string for your own text, and set `answer`
+       to the index (0-3) of the correct option. These two are excluded
+       from the graded score.
+       ==================================================================== */
+    {
+      fun: true,
+      topic: "Bonus round",
+      question: "[FUN Q1 &mdash; e.g. Which of these has &lt;NAME&gt; actually done?]",
+      options: ["[Option A]", "[Option B]", "[Option C]", "[Option D]"],
+      answer: 0,
+      explanation: "[Explain the answer here &mdash; and the story behind it.]"
+    },
+    {
+      fun: true,
+      topic: "Bonus round",
+      question: "[FUN Q2 &mdash; e.g. What is &lt;NAME&gt;&rsquo;s hot take on &hellip;?]",
+      options: ["[Option A]", "[Option B]", "[Option C]", "[Option D]"],
+      answer: 0,
+      explanation: "[Explain the answer here.]"
+    }
+    /* ===================== END BONUS ROUND ===================== */
+  ];
+
+  var BANDS = [
+    { min: 8, name: "Diagnostician",
+      note: "Full marks. You are not just fluent in the frameworks, you can tell a cause from a symptom under pressure. Go run the 11-star exercise on something real." },
+    { min: 6, name: "Product thinker",
+      note: "Solid. The instincts are there — tighten up the ones you missed and you are ready to lead a problem-framing session." },
+    { min: 4, name: "Warming up",
+      note: "You have the vocabulary. The next step is application: run the 4Cs on an initiative you are already working on and see if you can fill all four fields." },
+    { min: 0, name: "Solution-first",
+      note: "The pull toward tools and features is strong here. Start with Understanding the Problem, then practise the Five Whys on something small." }
+  ];
+
+  var GRADED  = QUESTIONS.filter(function (q) { return !q.fun; }).length;
+  var LETTERS = ["A", "B", "C", "D", "E", "F"];
+
+  var quizEl    = document.getElementById("quiz");
+  var resultsEl = document.getElementById("results");
+  var barEl     = document.getElementById("bar");
+  var counterEl = document.getElementById("counter");
+
+  var current = 0;
+  var picked  = [];
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  function setProgress(answered) {
+    barEl.style.width = (answered / QUESTIONS.length) * 100 + "%";
+    barEl.setAttribute("aria-valuenow", String(answered));
+    barEl.setAttribute("aria-valuemax", String(QUESTIONS.length));
+  }
+
+  function renderQuestion() {
+    var q = QUESTIONS[current];
+
+    counterEl.textContent = "Question " + (current + 1) + " of " + QUESTIONS.length;
+    setProgress(current);
+
+    quizEl.innerHTML =
+      '<span class="badge">' + esc(q.topic) + '</span>' +
+      '<h2 class="question" id="stem" tabindex="-1">' + q.question + '</h2>' +
+      '<div class="options" id="options"></div>' +
+      '<div class="feedback" id="feedback" tabindex="-1" aria-live="polite"></div>' +
+      '<div class="actions" id="actions"></div>';
+
+    var optionsEl = document.getElementById("options");
+
+    q.options.forEach(function (text, i) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "option";
+      btn.innerHTML = '<span class="key">' + LETTERS[i] + '</span><span>' + esc(text) + '</span>';
+      btn.addEventListener("click", function () { choose(i); });
+      optionsEl.appendChild(btn);
+    });
+  }
+
+  function choose(index) {
+    var q   = QUESTIONS[current];
+    var hit = index === q.answer;
+
+    picked[current] = index;
+
+    var buttons = document.getElementById("options").children;
+    for (var i = 0; i < buttons.length; i++) {
+      var btn = buttons[i];
+      var key = btn.querySelector(".key");
+      btn.disabled = true;
+      if (i === q.answer) {
+        btn.classList.add("correct");
+        key.textContent = "✓";
+      } else if (i === index) {
+        btn.classList.add("wrong");
+        key.textContent = "✗";
+      }
+    }
+
+    var verdict = q.fun
+      ? (hit ? "Got it" : "Nope")
+      : (hit ? "Correct" : "Not quite");
+
+    var html =
+      '<p class="verdict">' + verdict + '</p>' +
+      '<p class="explanation">' + q.explanation + '</p>';
+
+    if (q.source) {
+      html += '<span class="source">Source: <a href="' + q.source.url +
+              '" target="_blank" rel="noopener">' + esc(q.source.label) + '</a></span>';
+    }
+
+    var fb = document.getElementById("feedback");
+    fb.className = "feedback " + (hit ? "hit" : "miss");
+    fb.innerHTML = html;
+
+    setProgress(current + 1);
+
+    var last = current === QUESTIONS.length - 1;
+    var next = document.createElement("button");
+    next.type = "button";
+    next.className = "btn";
+    next.textContent = last ? "See results" : "Next question";
+    next.addEventListener("click", advance);
+    document.getElementById("actions").appendChild(next);
+
+    fb.focus();
+  }
+
+  function advance() {
+    if (current === QUESTIONS.length - 1) {
+      renderResults();
+    } else {
+      current++;
+      renderQuestion();
+      document.getElementById("stem").focus();
+    }
+  }
+
+  function bandFor(score) {
+    for (var i = 0; i < BANDS.length; i++) {
+      if (score >= BANDS[i].min) { return BANDS[i]; }
+    }
+    return BANDS[BANDS.length - 1];
+  }
+
+  function renderResults() {
+    var score = 0, bonus = 0, bonusTotal = 0, missed = [];
+
+    QUESTIONS.forEach(function (q, i) {
+      var hit = picked[i] === q.answer;
+      if (q.fun) {
+        bonusTotal++;
+        if (hit) { bonus++; }
+      } else if (hit) {
+        score++;
+      } else {
+        missed.push(i);
+      }
+    });
+
+    var band = bandFor(score);
+
+    var html =
+      '<p class="score">' + score + '<span>&thinsp;/&thinsp;' + GRADED + '</span></p>' +
+      '<p class="band">' + esc(band.name) + '</p>' +
+      '<p class="band-note">' + esc(band.note) + '</p>';
+
+    if (bonusTotal) {
+      html += '<p class="bonus">Bonus round: ' + bonus + ' of ' + bonusTotal + '.</p>';
+    }
+
+    if (missed.length) {
+      html += '<div class="review"><h2>What to revisit</h2>';
+      missed.forEach(function (i) {
+        var q = QUESTIONS[i];
+        html +=
+          '<div class="review-item">' +
+            '<p class="review-q">' + (i + 1) + '. ' + q.question + '</p>' +
+            '<p class="review-line picked"><span class="mark">✗</span> You picked: ' +
+              esc(q.options[picked[i]]) + '</p>' +
+            '<p class="review-line answer"><span class="mark">✓</span> Answer: ' +
+              esc(q.options[q.answer]) + '</p>' +
+            '<p class="explanation review-exp">' + q.explanation + '</p>' +
+          '</div>';
+      });
+      html += '</div>';
+    } else {
+      html += '<p class="bonus">Nothing to revisit — a clean sweep of the graded questions.</p>';
+    }
+
+    html += '<div class="actions"><button type="button" class="btn secondary" id="restart">Start over</button></div>';
+
+    quizEl.hidden = true;
+    resultsEl.hidden = false;
+    resultsEl.innerHTML = html;
+    resultsEl.setAttribute("tabindex", "-1");
+
+    counterEl.textContent = "Complete";
+    setProgress(QUESTIONS.length);
+
+    document.getElementById("restart").addEventListener("click", restart);
+    resultsEl.focus();
+  }
+
+  function restart() {
+    current = 0;
+    picked.length = 0;
+    resultsEl.hidden = true;
+    resultsEl.innerHTML = "";
+    quizEl.hidden = false;
+    renderQuestion();
+    document.getElementById("stem").focus();
+  }
+
+  renderQuestion();
+}());
+</script>
+</body>
+</html>

@@ -12,11 +12,10 @@ on:
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
+    # Only review PRs from trusted authors. Fork PRs get no secrets under the
+    # `pull_request` trigger anyway, so this is mainly to stop outside PRs from
+    # burning Actions minutes on a run that would fail with an empty token.
+    if: contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.pull_request.author_association)
 
     runs-on: ubuntu-latest
     permissions:
